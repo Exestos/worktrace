@@ -31,6 +31,16 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final String[] AUTH_WHITELIST = {
+            // Swagger
+            "/docs",
+            "/docs/**",
+            "/swagger",
+            "/swagger-ui/**",
+            // Authorization
+            "/token"
+    };
+
     private RSAKey rsaKey;
 
     @Bean
@@ -51,7 +61,7 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests( auth -> auth
-                        .mvcMatchers("/token").permitAll()
+                        .mvcMatchers(AUTH_WHITELIST).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -7,6 +7,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     interface GroupTitle {
         Long getId();
+
         String getTitle();
     }
 }

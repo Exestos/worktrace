@@ -1,8 +1,11 @@
 package com.exestos.worktrace.dto.jwt;
 
-public record RegistrationRequest(
-        String username,
-        String password,
-        String firstName,
-        String lastName) {
+import lombok.Data;
+
+@Data
+public class RegistrationRequest {
+    private String username;
+    private String password;
+    private String firstName;
+    private String lastName;
 }

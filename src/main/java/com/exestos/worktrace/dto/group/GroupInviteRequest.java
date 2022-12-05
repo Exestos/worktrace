@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class GroupInviteRequest {
-    private Long user_id;
-    private Long group_id;
+    private long user_id;
+    private long group_id;
 }

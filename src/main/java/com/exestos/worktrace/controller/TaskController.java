@@ -2,12 +2,16 @@ package com.exestos.worktrace.controller;
 
 import com.exestos.worktrace.domain.Group;
 import com.exestos.worktrace.domain.Task;
+import com.exestos.worktrace.domain.User;
 import com.exestos.worktrace.dto.task.TaskRequest;
 import com.exestos.worktrace.repository.GroupRepository;
 import com.exestos.worktrace.repository.TaskRepository;
 import com.exestos.worktrace.service.security.AuthorityService;
+import com.exestos.worktrace.service.task.TaskService;
+import com.exestos.worktrace.utils.GRolePrivileges;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -18,47 +22,32 @@ import java.util.Optional;
 @RequestMapping(path="/api/tasks")
 public class TaskController {
 
-    private final TaskRepository taskRepository;
-    private final GroupRepository groupRepository;
+    private final TaskService taskService;
     private final AuthorityService authorityService;
 
-    public TaskController(TaskRepository taskRepository, GroupRepository groupRepository, AuthorityService authorityService) {
-        this.taskRepository = taskRepository;
-        this.groupRepository = groupRepository;
+    public TaskController(TaskService taskService, AuthorityService authorityService) {
+        this.taskService = taskService;
         this.authorityService = authorityService;
     }
 
     @GetMapping(path="/{id}")
     public ResponseEntity<Task> get(@PathVariable Long id) {
-        Optional<Task> task = taskRepository.findById(id);
-        return task.map(value -> ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(value))
-                .orElseGet(() -> ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(null));
+        Task task = taskService.findById(id);
+        if (task == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(task);
     }
 
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody TaskRequest request, Principal principal) {
-        Group group = groupRepository.getReferenceById(request.group_id());
-        if (!authorityService.canCreateTask(principal, group)) {
+        User user = authorityService.getUser(principal);
+        if (!authorityService.hasPrivilege(user.getId(), request.getGroup_id(), GRolePrivileges.CREATE_TASK)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
-        Task task = new Task();
-        task.setTitle(request.title());
-        task.setDescription(request.description());
-        task.setGroup(group);
-        task.setUser(authorityService.getUser(principal));
-        task = taskRepository.save(task);
-        LinkedHashMap<String, Object> body = new LinkedHashMap<>();
-        body.put("id", task.getId());
-        body.put("title", task.getTitle());
-        body.put("description", task.getDescription());
-        body.put("group_id", task.getGroup().getId());
-        body.put("creator_id", task.getUser().getId());
+        Object task = taskService.create(user, request.getGroup_id(), request.getTitle(), request.getDescription());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(body);
+                .body(task);
     }
 }

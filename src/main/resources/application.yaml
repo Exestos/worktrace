@@ -10,4 +10,8 @@ spring:
         password: mysecretpassword
         driverClassName: org.postgresql.Driver
         url: jdbc:postgresql://localhost:5432/postgres
-
+springdoc:
+    api-docs:
+        path: /docs
+    swagger-ui:
+        path: /swagger

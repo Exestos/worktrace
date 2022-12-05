@@ -17,13 +17,12 @@ public class RegistrationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User register(RegistrationRequest request) {
+    public User register(String username, String password, String firstName, String lastName) {
         User user = new User();
-        user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
-
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
         return userRepository.save(user);
     }
 }

@@ -7,7 +7,6 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "group_roles")
@@ -20,17 +19,18 @@ public class GroupRole implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String role;
+    @Column(name="role_name")
+    private String roleName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Column(name="privileges")
+    private Long privileges;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private Group group;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Set<GroupPrivilege> privileges;
-
-    @ManyToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "grole_users",
+            name = "group_roles_users",
             joinColumns = @JoinColumn(name = "group_role_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<User> users;

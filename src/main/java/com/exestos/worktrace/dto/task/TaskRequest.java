@@ -1,5 +1,10 @@
 package com.exestos.worktrace.dto.task;
 
-public record TaskRequest(String title, String description, Long group_id) {
+import lombok.Data;
 
+@Data
+public class TaskRequest {
+    private String title;
+    private String description;
+    private long group_id;
 }

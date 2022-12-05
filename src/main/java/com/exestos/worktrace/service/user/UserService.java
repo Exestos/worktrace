@@ -22,7 +22,7 @@ public class UserService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException(username);
         }
-        return new UserDetailsImpl(user);
+        return user;
     }
 
     public UserRepository.UserInfo findInfo(Long id) {

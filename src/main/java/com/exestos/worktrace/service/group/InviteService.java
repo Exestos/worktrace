@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InviteService {
@@ -26,27 +27,36 @@ public class InviteService {
     }
 
     @Transactional
-    public void send_invite(GroupInviteRequest request, User from) {
-        Group group = groupRepository.findById(request.getGroup_id()).get();
-        User user = userRepository.findById(request.getUser_id()).get();
-        GroupInvite groupInvite = new GroupInvite();
-        groupInvite.setGroup(group);
-        groupInvite.setUser(user);
-        groupInvite.setFrom(from);
-        groupInviteRepository.save(groupInvite);
-    }
-
-    public List<GroupInvite> getUserInvites(User user) {
-        return groupInviteRepository.findGroupInviteByUser(user);
-    }
-
-    public void accept_invite(Long invite_id, User user) {
-        GroupInvite groupInvite = groupInviteRepository.findById(invite_id).get();
-        if (!user.getId().equals(groupInvite.getUser().getId())){
-            return;
+    public GroupInvite send_invite(long group_id, long user_id, User from) {
+        Optional<Group> group = groupRepository.findById(group_id);
+        Optional<User> user = userRepository.findById(user_id);
+        if (group.isEmpty() || user.isEmpty()) {
+            return null;
         }
-        Group group = groupRepository.findById(groupInvite.getId()).get();
+        GroupInvite groupInvite = new GroupInvite();
+        groupInvite.setGroup(group.get());
+        groupInvite.setUser(user.get());
+        groupInvite.setFrom(from);
+        return groupInviteRepository.save(groupInvite);
+    }
+
+    public List<GroupInviteRepository.UserInvites> getUserInvites(long user_id) {
+        return groupInviteRepository.findUserInvitesByUserId(user_id);
+    }
+
+    public List<GroupInviteRepository.GroupInvites> getGroupInvites(long group_id) {
+        return groupInviteRepository.findGroupInvitesByGroupId(group_id);
+    }
+
+    public Group accept_invite(Long invite_id, User user) {
+        Optional<GroupInvite> groupInvite = groupInviteRepository.findById(invite_id);
+        if (groupInvite.isEmpty() || !user.getId().equals(groupInvite.get().getUser().getId())){
+            return null;
+        }
+        // todo: make it work correctly
+        Group group = groupRepository.findById(groupInvite.get().getId()).get();
         group.getUsers().add(user);
         groupRepository.save(group);
+        return group;
     }
 }

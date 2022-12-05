@@ -23,10 +23,10 @@ public class Group implements Serializable {
     @Column(name = "title")
     private String title;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private User creator;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "group_users",
             joinColumns = @JoinColumn(name = "group_id"),

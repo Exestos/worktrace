@@ -1,8 +1,10 @@
 package com.exestos.worktrace.controller;
 
 import com.exestos.worktrace.domain.User;
+import com.exestos.worktrace.dto.EntityIdResponse;
 import com.exestos.worktrace.dto.jwt.LoginRequest;
 import com.exestos.worktrace.dto.jwt.RegistrationRequest;
+import com.exestos.worktrace.dto.jwt.TokenResponse;
 import com.exestos.worktrace.service.security.TokenService;
 import com.exestos.worktrace.service.security.AuthorityService;
 import com.exestos.worktrace.service.user.RegistrationService;
@@ -33,21 +35,27 @@ public class AuthController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<String> token(@RequestBody LoginRequest userLogin) {
+    public ResponseEntity<TokenResponse> token(@RequestBody LoginRequest userLogin) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password()));
+                new UsernamePasswordAuthenticationToken(userLogin.getUsername(), userLogin.getPassword()));
+        String token = tokenService.generateToken(authentication);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(tokenService.generateToken(authentication));
+                .body(new TokenResponse(token));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegistrationRequest request, Principal principal) {
+    public ResponseEntity<EntityIdResponse> register(@RequestBody RegistrationRequest request, Principal principal) {
         if (!authorityService.isAdmin(principal)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
+        User user = registrationService.register(
+                request.getUsername(),
+                request.getPassword(),
+                request.getFirstName(),
+                request.getLastName());
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(registrationService.register(request));
+                .body(EntityIdResponse.of(user.getId()));
     }
 }
